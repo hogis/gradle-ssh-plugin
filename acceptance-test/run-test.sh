@@ -1,16 +1,17 @@
 #!/bin/bash -xe
 #
+# Run acceptance tests on Travis CI.
+#
 # Requirements:
+# - gradle-ssh-plugin must be installed (if version is not specified)
 # - sshd must be running
 # - sudo must be enabled without password
 # - java must be installed
 
-# move to acceptance test directory
 cd $(dirname $0)
 
-# determine Gradle path
-[ -x ../gradlew ] && gradle=../gradlew
-[ -x ./gradle/bin/gradle ] && gradle=./gradle/bin/gradle
+# determine Gradle wrapper
+[ "$GRADLE_VERSION" ] && ../gradlew wrapper || ln -s ../gradlew
 
 # enable public key authentication
 mkdir -m 700 -p -v                    $HOME/.ssh
@@ -27,10 +28,10 @@ ssh -o StrictHostKeyChecking=no \
 ssh-keygen -H -F localhost
 
 # run tests
-"$gradle" -i -s -Pversion="${version:-SNAPSHOT}" test aggressiveTest
+./gradlew -i -s -Pversion="${version:-SNAPSHOT}" test aggressiveTest
 
 # run tests with ssh-agent
 eval $(ssh-agent)
 ssh-add $HOME/.ssh/id_rsa
-"$gradle" -i -s -Pversion="${version:-SNAPSHOT}" testWithAgent
+./gradlew -i -s -Pversion="${version:-SNAPSHOT}" testWithAgent
 ssh-agent -k

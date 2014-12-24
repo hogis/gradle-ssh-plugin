@@ -68,3 +68,10 @@ fileTree(projectDir) {
 }.each {
     apply from: it
 }
+
+
+task wrapper(type: Wrapper) {
+    if (System.getenv('GRADLE_VERSION')) {
+        gradleVersion = System.getenv('GRADLE_VERSION')
+    }
+}
